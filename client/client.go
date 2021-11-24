@@ -31,11 +31,12 @@ func doUnaryCall(c calculatorpb.CalculatorServiceClient) {
 		Num1: 3,
 		Num2: 4,
 	}
+	log.Printf("Sending req: %v", req)
 	res, err := c.Sum(context.Background(), req)
 	if err != nil {
 		log.Fatalf("Error while calling Sum RPC: %v", err)
 	}
-	log.Printf("Response from Sum: %v + %v = %v", req.Num1, req.Num2, res.Result)
+	log.Printf("Response from Sum: %v", res.Result)
 }
 
 func doServerStreamingCall(c calculatorpb.CalculatorServiceClient) {
@@ -45,6 +46,7 @@ func doServerStreamingCall(c calculatorpb.CalculatorServiceClient) {
 		Num: 120,
 	}
 
+	log.Printf("Sending req: %v", req)
 	res, err := c.PrimeNumberDecomposition(context.Background(), req)
 	if err != nil {
 		log.Fatalf("Error while calling PrimeNumberDecomposition RPC: %v", err)
