@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net"
+	"time"
 
 	"github.com/marcojulian/calculator/calculatorpb"
 	"google.golang.org/grpc"
@@ -18,6 +19,25 @@ func (*server) Sum(ctx context.Context, req *calculatorpb.SumRequest) (*calculat
 	return &calculatorpb.SumResponse{
 		Result: req.GetNum1() + req.GetNum2(),
 	}, nil
+}
+
+func (*server) PrimeNumberDecomposition(req *calculatorpb.PrimeNumberDecompositionRequest, stream calculatorpb.CalculatorService_PrimeNumberDecompositionServer) error {
+	log.Printf("PrimeNumberDecomposition function was invoked with %v", req)
+	var prime int32 = 2
+	n := req.GetNum()
+	for n > 1 {
+		if n%prime == 0 {
+			n = n / prime
+			res := &calculatorpb.PrimeNumberDecompositionResponse{
+				Result: prime,
+			}
+			stream.Send(res)
+			time.Sleep(time.Second)
+		} else {
+			prime = prime + 1
+		}
+	}
+	return nil
 }
 
 func main() {
