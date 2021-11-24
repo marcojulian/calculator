@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"log"
+	"time"
 
 	"github.com/marcojulian/calculator/calculatorpb"
 	"google.golang.org/grpc"
@@ -23,6 +24,7 @@ func main() {
 	doUnaryCall(c)
 	doServerStreamingCall(c)
 	doClientStreamingCall(c)
+	doBiDiStreamingCall(c)
 }
 
 func doUnaryCall(c calculatorpb.CalculatorServiceClient) {
@@ -97,4 +99,64 @@ func doClientStreamingCall(c calculatorpb.CalculatorServiceClient) {
 	}
 
 	log.Printf("ComputeAverage Response: %v", res)
+}
+
+func doBiDiStreamingCall(c calculatorpb.CalculatorServiceClient) {
+	log.Println("Starting FindMaximum BiDi Streaming RPC...")
+
+	requests := []*calculatorpb.FindMaximumRequest{
+		{
+			Num: 1,
+		},
+		{
+			Num: 5,
+		},
+		{
+			Num: 3,
+		},
+		{
+			Num: 6,
+		},
+		{
+			Num: 2,
+		},
+		{
+			Num: 20,
+		},
+	}
+
+	stream, err := c.FindMaximum(context.Background())
+	if err != nil {
+		log.Fatalf("Error while calling BiDi RPC: %v", err)
+	}
+
+	waitc := make(chan struct{})
+	// we send a bunch of messages to the client (go routine)
+	go func(requests []*calculatorpb.FindMaximumRequest) {
+		for _, req := range requests {
+			log.Printf("Sending req: %v", req)
+			stream.Send(req)
+			time.Sleep(time.Second)
+		}
+		stream.CloseSend()
+	}(requests)
+
+	// we receive a bunch of messages from the client (go routine)
+	go func(waitc chan struct{}) {
+		for {
+			res, err := stream.Recv()
+			if err == io.EOF {
+				break
+			} else if err != nil {
+				log.Fatalf("Error while receiving: %v", err)
+				break
+			}
+			log.Printf("Received: %v", res.GetResult())
+			time.Sleep(time.Second)
+		}
+		close(waitc)
+	}(waitc)
+
+	// block until everything is done
+	<-waitc
 }
