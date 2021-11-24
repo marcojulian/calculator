@@ -7,6 +7,7 @@ import (
 	"log"
 	"math"
 	"net"
+	"time"
 
 	"github.com/marcojulian/calculator/calculatorpb"
 	"google.golang.org/grpc"
@@ -105,6 +106,14 @@ func (*server) SquareRoot(ctx context.Context, req *calculatorpb.SquareRootReque
 
 func (*server) Multiply(ctx context.Context, req *calculatorpb.MultiplyRequest) (*calculatorpb.MultiplyResponse, error) {
 	log.Printf("Multiply function was invoked with %v", req)
+	for i := 0; i < 4; i++ {
+		// Simulating long job that can be interrupted
+		time.Sleep(time.Second)
+		if ctx.Err() == context.Canceled {
+			log.Println("The client canceled the request")
+			return nil, status.Error(codes.Canceled, "The client canceled the request")
+		}
+	}
 	return &calculatorpb.MultiplyResponse{
 		Result: req.GetMultiplicand() * req.GetMultiplier(),
 	}, nil

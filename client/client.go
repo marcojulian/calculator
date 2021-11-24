@@ -27,7 +27,7 @@ func main() {
 	doServerStreamingCall(c)
 	doClientStreamingCall(c)
 	doBiDiStreamingCall(c)
-	doUnaryCallWithDeadline(c, time.Nanosecond)
+	doUnaryCallWithDeadline(c, time.Second)
 	doErrorUnaryCall(c)
 }
 
