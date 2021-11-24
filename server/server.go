@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"net"
-	"time"
 
 	"github.com/marcojulian/calculator/calculatorpb"
 	"google.golang.org/grpc"
@@ -32,7 +31,6 @@ func (*server) PrimeNumberDecomposition(req *calculatorpb.PrimeNumberDecompositi
 				Result: prime,
 			}
 			stream.Send(res)
-			time.Sleep(time.Second)
 		} else {
 			prime = prime + 1
 		}
