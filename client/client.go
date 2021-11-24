@@ -8,6 +8,7 @@ import (
 
 	"github.com/marcojulian/calculator/calculatorpb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
@@ -26,6 +27,7 @@ func main() {
 	doServerStreamingCall(c)
 	doClientStreamingCall(c)
 	doBiDiStreamingCall(c)
+	doUnaryCallWithDeadline(c, time.Nanosecond)
 	doErrorUnaryCall(c)
 }
 
@@ -180,4 +182,27 @@ func doErrorUnaryCall(c calculatorpb.CalculatorServiceClient) {
 		}
 	}
 	log.Printf("Response SquareRoot Sum: %v", res.Result)
+}
+
+func doUnaryCallWithDeadline(c calculatorpb.CalculatorServiceClient, timeout time.Duration) {
+	log.Println("Starting Multiply Unary RPC...")
+	req := &calculatorpb.MultiplyRequest{
+		Multiplicand: 4,
+		Multiplier:   3,
+	}
+	log.Printf("Sending req: %v", req)
+	log.Printf("With timeout: %v", timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	res, err := c.Multiply(ctx, req)
+	if err != nil {
+		resErr, ok := status.FromError(err)
+		if ok && resErr.Code() == codes.DeadlineExceeded {
+			log.Println("Deadline was exceeded")
+		} else {
+			log.Fatalf("Error while calling Multiply RPC: %v", err)
+		}
+	} else {
+		log.Printf("Response from Multiply: %v", res.Result)
+	}
 }
