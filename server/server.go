@@ -103,6 +103,13 @@ func (*server) SquareRoot(ctx context.Context, req *calculatorpb.SquareRootReque
 	}, nil
 }
 
+func (*server) Multiply(ctx context.Context, req *calculatorpb.MultiplyRequest) (*calculatorpb.MultiplyResponse, error) {
+	log.Printf("Multiply function was invoked with %v", req)
+	return &calculatorpb.MultiplyResponse{
+		Result: req.GetMultiplicand() * req.GetMultiplier(),
+	}, nil
+}
+
 func main() {
 	log.Println("Hello I'm a server!")
 
