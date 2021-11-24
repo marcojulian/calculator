@@ -8,6 +8,7 @@ import (
 
 	"github.com/marcojulian/calculator/calculatorpb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/status"
 )
 
 func main() {
@@ -25,6 +26,7 @@ func main() {
 	doServerStreamingCall(c)
 	doClientStreamingCall(c)
 	doBiDiStreamingCall(c)
+	doErrorUnaryCall(c)
 }
 
 func doUnaryCall(c calculatorpb.CalculatorServiceClient) {
@@ -159,4 +161,23 @@ func doBiDiStreamingCall(c calculatorpb.CalculatorServiceClient) {
 
 	// block until everything is done
 	<-waitc
+}
+
+func doErrorUnaryCall(c calculatorpb.CalculatorServiceClient) {
+	log.Println("Starting SquareRoot Unary RPC...")
+	req := &calculatorpb.SquareRootRequest{
+		Num: -2,
+	}
+	log.Printf("Sending req: %v", req)
+	res, err := c.SquareRoot(context.Background(), req)
+	if err != nil {
+		resErr, ok := status.FromError(err)
+		if ok {
+			log.Printf("Error message: %v", resErr.Message())
+			log.Fatalf("Error code: %v", resErr.Code())
+		} else {
+			log.Fatalf("Error while SquareRoot Sum RPC: %v", err)
+		}
+	}
+	log.Printf("Response SquareRoot Sum: %v", res.Result)
 }
