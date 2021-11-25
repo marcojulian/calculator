@@ -9,12 +9,21 @@ import (
 	"github.com/marcojulian/calculator/calculatorpb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/status"
 )
 
 func main() {
 	log.Println("Hello I'm a client!")
-	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
+
+	certFile := "ssl/ca.crt"
+	creds, sslErr := credentials.NewClientTLSFromFile(certFile, "")
+	if sslErr != nil {
+		log.Fatalf("Error while loading CA trust certificate: %v", sslErr)
+	}
+
+	opts := grpc.WithTransportCredentials(creds)
+	conn, err := grpc.Dial("localhost:50051", opts)
 	if err != nil {
 		log.Fatalf("Could not connect: %v", err)
 	}
